@@ -9,7 +9,8 @@ def free_squares(board):
 
     return free
 
-with open("data.csv", newline='') as csvfile:
+
+with open("../data/data.csv", newline='') as csvfile:
     reader = csv.reader(csvfile)
     win_data = [i for i in reader if i[10] == '1']
 
@@ -49,7 +50,6 @@ with tf.Session() as sess:
     batch_size = 100
     n_batches = int(len(win_data)/batch_size)
 
-
     print("Data instances: {}".format(len(win_data)))
 
     for epoch in range(epochs):
@@ -66,16 +66,6 @@ with tf.Session() as sess:
 
             probs = sess.run(logits,
                              feed_dict={input_positions_: inputs[start:end]})[0]
-            # free = free_squares(board=inputs[])
-            # d = dict(zip(range(0, len(probs)), probs))
-
-            # d = [(a, d[a]) for a in free]
-
-            # d = sorted(d, key=lambda x: x[1], reverse=True)
-
-            # print((np.argmax(labels[game]), d[0][0], np.argmax(probs)))
-
-            #print("Batch: {}".format(batch))
 
             sess.run(train_step,
                      feed_dict={input_positions_: inputs[start:end], labels_: labels[start:end]})
@@ -83,5 +73,8 @@ with tf.Session() as sess:
         print("Cost: {}".format(sess.run(cross_entropy,
                                          feed_dict={input_positions_: inputs,
                                                     labels_: labels})))
-    save_path = saver.save(sess, "/tmp/model.ckpt")
-    print("Model saved in path: %s" % save_path)
+    # save_path = saver.save(sess, "/tmp/model.ckpt")
+    # print("Model saved in path: %s" % save_path)
+
+
+print("this is a github commit check")
