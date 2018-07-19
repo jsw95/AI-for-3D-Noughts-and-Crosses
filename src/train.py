@@ -21,7 +21,6 @@ for row in win_data:
     labels.append([int(d) for d in row[9][1:len(row[9])-1].split(',')])
 
 
-
 input_positions_ = tf.placeholder(tf.float32, shape=[None, 9])
 labels_ = tf.placeholder(tf.float32, shape=[None, 9])
 
@@ -73,8 +72,8 @@ with tf.Session() as sess:
         print("Cost: {}".format(sess.run(cross_entropy,
                                          feed_dict={input_positions_: inputs,
                                                     labels_: labels})))
-    # save_path = saver.save(sess, "/tmp/model.ckpt")
-    # print("Model saved in path: %s" % save_path)
+    save_path = saver.save(sess, "/tmp/model.ckpt")
+    print("Model saved in path: %s" % save_path)
 
 
 print("this is a github commit check")
