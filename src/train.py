@@ -10,7 +10,7 @@ def free_squares(board):
     return free
 
 
-with open("../data/data.csv", newline='') as csvfile:
+with open("../data/data-30000.csv", newline='') as csvfile:
     reader = csv.reader(csvfile)
     win_data = [i for i in reader if i[10] == '1']
 
@@ -34,18 +34,19 @@ init = tf.global_variables_initializer()
 
 saver = tf.train.Saver()
 
+
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
                 logits=logits,
                 labels=labels_))
 
-train_step = tf.train.GradientDescentOptimizer(0.9).minimize(cross_entropy)
+train_step = tf.train.GradientDescentOptimizer(0.75).minimize(cross_entropy)
 
 
 with tf.Session() as sess:
 
     sess.run(init)
 
-    epochs = 10
+    epochs = 20
     batch_size = 100
     n_batches = int(len(win_data)/batch_size)
 
@@ -72,8 +73,36 @@ with tf.Session() as sess:
         print("Cost: {}".format(sess.run(cross_entropy,
                                          feed_dict={input_positions_: inputs,
                                                     labels_: labels})))
-    save_path = saver.save(sess, "/tmp/model.ckpt")
-    print("Model saved in path: %s" % save_path)
+
+    boards = [[1, 1, 0, 0, -1, -1, 0, 0, 0],
+              [0, 0, 0, 0, 0, 0, 0, 0, 0],
+              [1, 0, 1, 0, -1, -1, 0, 0, 0],
+              [1, 1, -1, 1, -1, -1, 0, 0, 0],
+              [1, 0, 0, 0, 0, 0, 0, 0, 0],
+              [0, 1, 0, 0, 0, 0, 0, 0, 0],
+              [0, 0, 1, 0, 0, 0, 0, 0, 0],
+              [1, 1, 0, 0, -1, -1, 0, 0, 1]]
+
+    for board in boards:
+
+        free = free_squares(board=board)
+
+        weights = sess.run(logits, feed_dict={input_positions_:[board]})[0]
+        d = dict(zip(range(0, len(weights)), weights))
+
+        d = [(a, d[a]) for a in free]
+
+        d = sorted(d, key=lambda x: x[1], reverse=True)
+
+        print(d)
+        print("Choice: {}".format(d[0][0]))
 
 
-print("this is a github commit check")
+
+
+
+
+
+    # save_path = saver.save(sess, "/tmp/model.ckpt")
+    # print("Model saved in path: %s" % save_path)
+
