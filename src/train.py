@@ -21,14 +21,14 @@ for row in win_data:
     labels.append([int(d) for d in row[9][1:len(row[9])-1].split(',')])
 
 
-input_positions_ = tf.placeholder(tf.float32, shape=[None, 9])
+input_positions_ = tf.placeholder(tf.float32, shape=[None, 9], name="x")
 labels_ = tf.placeholder(tf.float32, shape=[None, 9])
 
-weights = tf.Variable(tf.truncated_normal([9, 9], stddev=0.1))
+weights = tf.Variable(tf.truncated_normal([9, 9], stddev=0.1))#, name="weights")
 bias = tf.Variable(tf.constant(0.1, shape=[9]))
 y = tf.matmul(input_positions_, weights) + bias
 
-logits = tf.nn.softmax(y)
+logits = tf.nn.softmax(y, name="logits")
 
 init = tf.global_variables_initializer()
 
@@ -46,7 +46,7 @@ with tf.Session() as sess:
 
     sess.run(init)
 
-    epochs = 20
+    epochs = 2
     batch_size = 100
     n_batches = int(len(win_data)/batch_size)
 
@@ -97,12 +97,6 @@ with tf.Session() as sess:
         print(d)
         print("Choice: {}".format(d[0][0]))
 
-
-
-
-
-
-
-    # save_path = saver.save(sess, "/tmp/model.ckpt")
-    # print("Model saved in path: %s" % save_path)
+    save_path = saver.save(sess, "/tmp/model_2d.ckpt")
+    print("Model saved in path: %s" % save_path)
 
