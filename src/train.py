@@ -24,7 +24,7 @@ for row in win_data:
 input_positions_ = tf.placeholder(tf.float32, shape=[None, 9], name="x")
 labels_ = tf.placeholder(tf.float32, shape=[None, 9])
 
-weights = tf.Variable(tf.truncated_normal([9, 9], stddev=0.1))#, name="weights")
+weights = tf.Variable(tf.truncated_normal([9, 9], stddev=0.1))
 bias = tf.Variable(tf.constant(0.1, shape=[9]))
 y = tf.matmul(input_positions_, weights) + bias
 
@@ -39,14 +39,14 @@ cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
                 logits=logits,
                 labels=labels_))
 
-train_step = tf.train.GradientDescentOptimizer(0.75).minimize(cross_entropy)
+train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
 
 with tf.Session() as sess:
 
     sess.run(init)
 
-    epochs = 2
+    epochs = 20
     batch_size = 100
     n_batches = int(len(win_data)/batch_size)
 
@@ -73,29 +73,6 @@ with tf.Session() as sess:
         print("Cost: {}".format(sess.run(cross_entropy,
                                          feed_dict={input_positions_: inputs,
                                                     labels_: labels})))
-
-    boards = [[1, 1, 0, 0, -1, -1, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0, 0, 0],
-              [1, 0, 1, 0, -1, -1, 0, 0, 0],
-              [1, 1, -1, 1, -1, -1, 0, 0, 0],
-              [1, 0, 0, 0, 0, 0, 0, 0, 0],
-              [0, 1, 0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 1, 0, 0, 0, 0, 0, 0],
-              [1, 1, 0, 0, -1, -1, 0, 0, 1]]
-
-    for board in boards:
-
-        free = free_squares(board=board)
-
-        weights = sess.run(logits, feed_dict={input_positions_:[board]})[0]
-        d = dict(zip(range(0, len(weights)), weights))
-
-        d = [(a, d[a]) for a in free]
-
-        d = sorted(d, key=lambda x: x[1], reverse=True)
-
-        print(d)
-        print("Choice: {}".format(d[0][0]))
 
     save_path = saver.save(sess, "/tmp/model_2d.ckpt")
     print("Model saved in path: %s" % save_path)

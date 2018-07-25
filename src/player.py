@@ -7,21 +7,30 @@ def free_squares(board):
 
     return free
 
-
 class HumanPlayer(object):
+
+    def __init__(self):
+        self.human = True
 
     def player(self):
         return self.__class__.__name__
 
+
+
     @staticmethod
     def move(board):
-        print("Free Squares: " + str(free_squares(board)))
-        mov = input("Please choose a position from the free squares: ")
 
-        return int(mov)
+        print("Free Squares: " + str(free_squares(board)))
+        move = input("Please choose a position from the free squares: ")
+
+        return int(move)
+
 
 
 class RandomPlayer(object):
+
+    def __init__(self):
+        self.human = False
 
     def player(self):
         return self.__class__.__name__
@@ -29,76 +38,37 @@ class RandomPlayer(object):
     @staticmethod
     def move(board):
         free = free_squares(board)
-        mov = np.random.choice(free)
+        move = np.random.choice(free)
 
-        return mov
+        return move
+
 
 
 class AIPlayer(object):
 
     def __init__(self):
-        self.input_positions = tf.placeholder(tf.float32, shape=[None, 9])
-        self.labels = tf.placeholder(tf.float32, shape=[None, 9])
-        #self.learning_rate = tf.placeholder(tf.float32, shape=[])
-        self._prediction = None
-        self._train_step = None
-        self._error = None
+        tf.reset_default_graph()
+        self.imported_meta = tf.train.import_meta_graph("/tmp/model_2d.ckpt.meta")
+        self.human = False
 
-    def graph(self):
-        return tf.Graph()
+    def move(self,  board):
 
-    @property
-    def prediction(self):
-        if not self._prediction:
-            weights = tf.Variable(tf.truncated_normal([9, 9], stddev=0.1))
-            bias = tf.Variable(tf.constant(0.1, shape=[9]))
-            y = tf.matmul(self.input_positions, weights) + bias
-            self._prediction = tf.nn.softmax(y)
+        with tf.Session() as sess:
 
-        return self._prediction
+            self.imported_meta.restore(sess, tf.train.latest_checkpoint('/tmp/'))
 
-    @property
-    def train_step(self):
-        if not self._train_step:
-            cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
-                logits=self.prediction,
-                labels=self.labels))
-            self._train_step = tf.train.GradientDescentOptimizer(
-                learning_rate=0.1).minimize(cross_entropy)
+            weights = sess.run('logits:0', feed_dict={'x:0': [board]})[0]
 
-        return self._train_step
+            free = free_squares(board=board)
 
-    def move(self, board):
-        # sess = self.infer_session()
-        # sess.run(init)
+            d = [i for i in enumerate(weights) if i[0] in free]
 
-        probs = sess.run(self.prediction,
-                         feed_dict={self.input_positions: [board]})[0][0]
-        return probs
+            move_scores = sorted(d, key=lambda x: x[1], reverse=True)
+
+            return move_scores[0][0]
 
 
-# ai = AIPlayer()
-# init = tf.global_variables_initializer()
-#
-# # Start training
-# with tf.Session() as sess:
-#
-#     # Run the initializer
-#     sess.run(init)
-#
-#     print(ai.move([1,-1,0,0,0,0,0,0,0]))
-
-# with tf.Graph().as_default():
-#
-#     ai = AIPlayer()
-#
-#     print(ai.train_step)
-#     print(ai._prediction)
-#
-#     print(ai.move([1,-1,0,0,0,0,0,0,0]))
 
 
-# y1_tanh = tf.tanh(tf.matmul(self.input_positions * w1) + b1)
 
-# w1 = tf.Variable(tf.truncated_normal([9, 9], stddev=0.1))
-# b1 = tf.Variable(tf.zeros([1, 9]))
+

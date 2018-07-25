@@ -13,6 +13,7 @@ class Game(object):
         self.board = [0] * 9
         self.board_log = []
         self.move_log = []
+        self.print = False
 
     winners = [
         [0, 1, 2],
@@ -26,13 +27,6 @@ class Game(object):
     ]
 
     def win_check(self):
-
-        def f(pl):
-            if pl == 1:
-                return self.player1
-            elif pl == -1:
-                return self.player2
-
         for win in self.winners:
             if (self.board[win[0]] == self.board[win[1]]
                     and self.board[win[0]] == self.board[win[2]]
@@ -40,28 +34,27 @@ class Game(object):
 
                 self.winner = self.player_current
                 self.end = True
+                return True
 
-                # print("{} wins!".format(f(self.player_current)))
+        if 0 not in self.board:
+            self.end = True
 
-            # else:
-            #
-            #     print("no")
-            #     return False
-
+    """ fix this shit """
     def move(self, pos):
-
         if pos < 0 or pos > 8:
             print("Please enter a square between 0 and 8")
-            self.move(pos=pos)
+            # self.move(pos=pos)
 
         elif self.board[pos] != 0:
             print("Please choose a blank square")
+            # self.move(pos=pos)
+
+
 
         else:
             self.board[pos] = self.player_current
 
     def print_board(self):
-
         def f(l):
             if l == 0:
                 return ' '
@@ -77,16 +70,6 @@ class Game(object):
         print('-------------')
         print('| {} | {} | {} |'.format(f(self.board[6]), f(self.board[7]), f(self.board[8])))
         print('-------------\n')
-
-    def advance(self, pos):
-        # print("-" * 40)
-        self.board_log.append([i for i in self.board])
-        self.move_log.append([pos, self.player_current])
-        self.move(pos=pos)
-        self.win_check()
-        self.output_data()
-        # self.print_board()
-        self.player_current *= -1
 
     def output_data(self):
 
@@ -107,21 +90,19 @@ class Game(object):
 
     def free_squares(self):
         free = [i for i in range(9) if self.board[i] == 0]
-
         return free
 
-# game = Game('Jack', 'Bob')
+    def advance(self, pos):
 
+        self.board_log.append([i * self.player_current for i in self.board])
+        self.move_log.append([pos, self.player_current])
 
-# while not game.end:
-#
-#     if len(game.free_squares()) > 0:
-#         move = np.random.choice(game.free_squares())
-#         game.advance(move)
-#     else:
-#         break
-#
-#
-# [print(i) for i in game.output_data()]
-# print(game.output_data())
+        self.move(pos=pos)
+
+        if self.print:
+            self.print_board()
+
+        self.win_check()
+        self.output_data()
+        self.player_current *= -1
 

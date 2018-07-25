@@ -1,44 +1,39 @@
 import tensorflow as tf
 
 
-
 def free_squares(board):
     free = [i for i in range(9) if board[i] == 0]
 
     return free
 
+
+
+
 tf.reset_default_graph()
-imported_meta = tf.train.import_meta_graph("/tmp/model_2d.ckpt.meta")
+imported_meta = tf.train.import_meta_graph("/tmp/model_2d_wl.ckpt.meta")
+
+
+def move(board):
+
+    with tf.Session() as sess:
+
+        imported_meta.restore(sess, tf.train.latest_checkpoint('/tmp/'))
+
+        weights = sess.run('logits:0', feed_dict={'x:0': [board]})[0]
+
+        free = free_squares(board=board)
+
+        d = [i for i in enumerate(weights) if i[0] in free]
+
+        move_scores = sorted(d, key=lambda x: x[1], reverse=True)
+
+        return move_scores[0][0]
 
 
 
 
-# input_positions_ = tf.placeholder(tf.float32, shape=[None, 9])
-# labels_ = tf.placeholder(tf.float32, shape=[None, 9])
-# init = tf.global_variables_initializer()
-# saver = tf.train.Saver()
-
-with tf.Session() as sess:
-
-    imported_meta.restore(sess, tf.train.latest_checkpoint('/tmp/'))
-    board = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    # weights = sess.run(weights)
-    # logits = sess.run('logits:0')
-    # print(logits)
-
-    # b = sess.run('bias')
-    # input_positions_ = tf.placeholder(tf.float32, shape=[None, 9])
-    #
-    weights = sess.run('logits:0', feed_dict={'x:0': [board]})[0]
-    print(weights)
-    d = dict(zip(range(0, len(weights)), weights))
-    free = free_squares(board=board)
-
-    d = [(a, d[a]) for a in free]
-
-    d = sorted(d, key=lambda x: x[1], reverse=True)
-
-    print(d)
-
-    # print("Labels: {}".format(labels_))
-
+move([0,0,0,0,0,0,0,0,0])  # correct 4
+move([1,1,-1,1,-1,-1,0,0,0])  # correct 6
+move([1,1,0,-1,-1,0,0,0,0])  # correct 2
+move([-1,-1,0,1,1,0,0,0,0])  # correct 5
+move([-1,-1,0,1,0,0,0,0,0])  # correct 5
