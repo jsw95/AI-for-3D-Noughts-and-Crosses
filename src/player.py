@@ -20,11 +20,10 @@ class HumanPlayer(object):
     @staticmethod
     def move(board):
 
-        print("Free Squares: " + str(free_squares(board)))
+        print("Free Squares: " + str([i+1 for i in free_squares(board)]))
         move = input("Please choose a position from the free squares: ")
 
-        return int(move)
-
+        return int(move) - 1
 
 
 class RandomPlayer(object):
@@ -43,19 +42,20 @@ class RandomPlayer(object):
         return move
 
 
-
 class AIPlayer(object):
 
-    def __init__(self):
+    def __init__(self, model="model"):
         tf.reset_default_graph()
-        self.imported_meta = tf.train.import_meta_graph("/tmp/model_2d.ckpt.meta")
+        self.imported_meta = tf.train.import_meta_graph("../models/{}.ckpt.meta".format(model))
+        # self.imported_meta = tf.train.import_meta_graph("/tmp/{}.ckpt.meta".format(model))
         self.human = False
 
     def move(self,  board):
 
         with tf.Session() as sess:
 
-            self.imported_meta.restore(sess, tf.train.latest_checkpoint('/tmp/'))
+            self.imported_meta.restore(sess, tf.train.latest_checkpoint('../models/'))
+            # self.imported_meta.restore(sess, tf.train.latest_checkpoint('/tmp/'))
 
             weights = sess.run('logits:0', feed_dict={'x:0': [board]})[0]
 

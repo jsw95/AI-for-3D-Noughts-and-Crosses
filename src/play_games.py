@@ -5,15 +5,19 @@ import csv
 p1 = player.RandomPlayer()
 p2 = player.RandomPlayer()
 p3 = player.HumanPlayer()
-p4 = player.AIPlayer()
-p5 = player.AIPlayer()
+p4 = player.AIPlayer(model="model")
+p6 = player.AIPlayer(model="model_deep")
+p5 = player.AIPlayer(model="model_deep_10")
+p7 = player.AIPlayer(model="model_lr0.1")
+# p8 = player.AIPlayer(model="model_50_lr0.1_100e") # not working due to shape error?
+# p9 = player.AIPlayer(model="model_25_0.3_50") # not working due to shape error?
 
 
 def play_game(player1, player2, write_data=False):
 
     p1_wins, p2_wins, draws = 0, 0, 0
 
-    for i in range(20):
+    for i in range(1):
 
         game = Game(player1, player2)
 
@@ -27,7 +31,6 @@ def play_game(player1, player2, write_data=False):
             if not game.end:
                 game.advance(player2.move(game.board))
 
-
         if game.winner == 1:
             p1_wins += 1
         elif game.winner == -1:
@@ -35,17 +38,17 @@ def play_game(player1, player2, write_data=False):
         elif game.winner == 0:
             draws += 1
 
-
-
         if write_data:
             with open("../data/data-30000.csv", 'a', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerows(game.output_data())
 
-    print("Player 1 wins - Draws - Player 2 wins \n{} - {} - {}".format(p1_wins, draws, p2_wins))
+    # print("Player 1 wins - Draws - Player 2 wins \n{} - {} - {}".format(p1_wins, draws, p2_wins))
+    print("P1 - D - P2\n{} - {} - {}".format(p1_wins, draws, p2_wins))
 
 
-play_game(p2, p5)
+play_game(p3, p7)
+play_game(p7, p3)
 
 
 
