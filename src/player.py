@@ -3,7 +3,7 @@ import tensorflow as tf
 
 
 def free_squares(board):
-    free = [i for i in range(9) if board[i] == 0]
+    free = [i for i in range(64) if board[i] == 0]
 
     return free
 
@@ -20,10 +20,14 @@ class HumanPlayer(object):
     @staticmethod
     def move(board):
 
-        print("Free Squares: " + str([i+1 for i in free_squares(board)]))
-        move = input("Please choose a position from the free squares: ")
+        print("Please input as: layer x-coord y-coord")
+        coords = input("Please choose a position from the free squares: ")
 
-        return int(move) - 1
+        layer, x, y = coords.split(" ")
+
+        move = (int(layer)-1) * 16 + (int(y) - 1) * 4 + (int(x) - 1)
+
+        return move
 
 
 class RandomPlayer(object):

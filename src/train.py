@@ -5,7 +5,7 @@ import random
 
 
 def train_ai(infile="data-30000.csv", outfile="model", hidden_units=10, hidden_layers=1, epochs=20,
-             batch_size=100):
+             batch_size=100, learning_rate=0.25):
 
     tf.reset_default_graph()
 
@@ -14,6 +14,7 @@ def train_ai(infile="data-30000.csv", outfile="model", hidden_units=10, hidden_l
         win_data = [i for i in reader if i[10] == '1']
 
     inputs, labels = [], []
+
 
     for row in win_data:
         inputs.append([int(d) for d in row[:9]])
@@ -30,7 +31,7 @@ def train_ai(infile="data-30000.csv", outfile="model", hidden_units=10, hidden_l
     b2 = tf.Variable(tf.constant(0.1, shape=[9]))
     h2 = tf.matmul(h1, w2) + b2
 
-    logits = tf.nn.softmax(h1, name="logits")
+    logits = tf.nn.softmax(h2, name="logits")
 
     init = tf.global_variables_initializer()
 
@@ -40,7 +41,7 @@ def train_ai(infile="data-30000.csv", outfile="model", hidden_units=10, hidden_l
         logits=logits,
         labels=labels_))
 
-    train_step = tf.train.GradientDescentOptimizer(0.3).minimize(cross_entropy)
+    train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
 
     with tf.Session() as sess:
 
@@ -73,7 +74,9 @@ def train_ai(infile="data-30000.csv", outfile="model", hidden_units=10, hidden_l
         print("Model saved in path: %s" % save_path)
 
 
-
-
-
-train_ai(outfile="model", hidden_units=9, epochs=50)
+train_ai(infile="ai-r-30000.csv",
+         outfile="model_20_50v2",
+         hidden_units=20,
+         epochs=50,
+         batch_size=50,
+         learning_rate=0.15)

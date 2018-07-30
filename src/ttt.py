@@ -9,7 +9,6 @@ class Game(object):
         self.player_current = 1
         self.winner = 0
         self.end = False
-        # self.board = [[0] * 9 for i in range(3)]
         self.board = [0] * 9
         self.board_log = []
         self.move_log = []
@@ -48,9 +47,6 @@ class Game(object):
         elif self.board[pos] != 0:
             print("Please choose a blank square")
             # self.move(pos=pos)
-
-
-
         else:
             self.board[pos] = self.player_current
 
