@@ -6,26 +6,26 @@ import csv
 p1 = player.RandomPlayer()
 p2 = player.RandomPlayer()
 p3 = player.HumanPlayer()
-# p4 = player.AIPlayer(model="model")
-p6 = player.AIPlayer(model="model_deep")
+p4 = player.AIPlayer(model="model_3d_v1")
+# p6 = player.AIPlayer(model="model_deep")
 # p5 = player.AIPlayer(model="model_deep_10")
 # p7 = player.AIPlayer(model="model_lr0.1")
 # p8 = player.AIPlayer(model="model_50_lr0.1_100e") # not working due to shape error?
 # p9 = player.AIPlayer(model="model_20_30") # not working due to shape error?
-p9 = player.AIPlayer(model="model_20_50v2") # not working due to shape error?
+# p9 = player.AIPlayer(model="model_20_50v2") # not working due to shape error?
 
 
-def play_game(player1, player2, write_data=False, outfile="databoy.csv", iter=1):
+def play_game(player1, player2, write_data=False, outfile="databoy.csv", iter=1, print_board=False):
 
     p1_wins, p2_wins, draws = 0, 0, 0
 
     for i in range(iter):
-        # if i % 10 == 0:
-        #     print("Epoch: {}".format(i))
+        if i % 100 == 0:
+            print("Epoch: {}".format(i))
 
         game = Game(player1, player2)
 
-        if player1.human or player2.human:
+        if print_board == True:
             game.print = True
             game.print_board()
 
@@ -50,11 +50,7 @@ def play_game(player1, player2, write_data=False, outfile="databoy.csv", iter=1)
     print("P1 - D - P2\n{} - {} - {}".format(p1_wins, draws, p2_wins))
 
 
-# play_game(p1, p9, iter=500, write_data=True)
-# play_game(p9, p1, iter=100, write_data=True)
 
-# play_game(p9, p6, iter=25)
-# play_game(p6, p9, iter=25)
-play_game(p1, p2, write_data=True, outfile="3d-r-r-1000.csv", iter=10000)
-
+# play_game(p1, p2, write_data=True, outfile="3d-r-r-gl-1000.csv", iter=10000)
+play_game(p4, p3, iter=1, print_board=True)
 

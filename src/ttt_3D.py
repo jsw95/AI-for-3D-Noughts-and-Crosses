@@ -113,6 +113,7 @@ class Game(object):
             data = []
             data.extend(self.board_log[i])
             data.append(ohe(self.move_log[i][0]))
+            data.append(len(self.move_log))
             data.append(self.winner * self.move_log[i][1])
             data_log.append(data)
 

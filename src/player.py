@@ -9,8 +9,6 @@ def free_squares(board):
 
 class HumanPlayer(object):
 
-    def __init__(self):
-        self.human = True
 
     def player(self):
         return self.__class__.__name__
@@ -32,9 +30,6 @@ class HumanPlayer(object):
 
 class RandomPlayer(object):
 
-    def __init__(self):
-        self.human = False
-
     def player(self):
         return self.__class__.__name__
 
@@ -52,7 +47,7 @@ class AIPlayer(object):
         tf.reset_default_graph()
         self.imported_meta = tf.train.import_meta_graph("../models/{}.ckpt.meta".format(model))
         # self.imported_meta = tf.train.import_meta_graph("/tmp/{}.ckpt.meta".format(model))
-        self.human = False
+
 
     def move(self,  board):
 
