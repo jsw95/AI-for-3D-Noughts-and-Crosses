@@ -60,23 +60,12 @@ if __name__ == "__main__":
     p2 = player.HumanPlayer()
 
     # train_ai(infile="3d-r-r-gl<25.csv",
-    #          hidden_units=64,
-    #          hidden_layers=1,
-    #          epochs=10,
+    #          hidden_units=100,
+    #          hidden_layers=10,
+    #          epochs=5,
     #          batch_size=15,
-    #          learning_rate=0.9)
+    #          learning_rate=0.5)
 
-    p3 = player.AIPlayer(model="3d-64-1-10-15-0.5")
-    play_game(p3, p1, iter=5, write_data=True, outfile="3d-t-r-gl-1000.csv")
-    play_game(p1, p3, iter=5, write_data=True, outfile="3d-t-r-gl-1000.csv")
+    p3 = player.AIPlayer(model="3d-100-10-5-15-0.5")
+    play_game(p3, p2, iter=3, write_data=True, outfile="3d-t-r-gl-1000.csv", print_board=True)
 
-    # train_ai(infile="3d-r-r-gl<25.csv",
-    #          hidden_units=64,
-    #          hidden_layers=1,
-    #          epochs=10,
-    #          batch_size=15,
-    #          learning_rate=0.05)
-
-    p4 = player.AIPlayer(model="3d-100-1-10-15-0.5")
-    play_game(p4, p1, iter=5, write_data=True, outfile="3d-t-r-gl-1000.csv")
-    play_game(p1, p4, iter=5, write_data=True, outfile="3d-t-r-gl-1000.csv")

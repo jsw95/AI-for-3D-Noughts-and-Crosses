@@ -14,7 +14,11 @@ def train_ai(
         batch_size=100,
         learning_rate=0.25,
         shape=64):
+
     tf.reset_default_graph()
+
+    model_name = "{}-{}-{}-{}-{}-{}".format(
+            outfile, hidden_units, hidden_layers, epochs, batch_size, learning_rate)
 
     with open("../data/" + infile, newline='') as csvfile:
         reader = csv.reader(csvfile)
@@ -25,8 +29,7 @@ def train_ai(
         inputs.append([int(d) for d in row[:shape]])
         labels.append([int(d) for d in row[shape][1:len(row[shape]) - 1].split(',')])
 
-    with open("../models/info/{}-{}-{}-{}-{}-{}.txt".format(
-            outfile, hidden_units, hidden_layers, epochs, batch_size, learning_rate), "a+") as info:
+    with open("../models/info/{}.txt".format(model_name), "a+") as info:
         info.write("Training Data: {}\n".format(infile))
         info.write("Instances: {}\n".format(len(inputs)))
         info.write("Hidden Units: {}\n".format(hidden_units))
@@ -96,15 +99,13 @@ def train_ai(
             cost = round(float(cost), 3)
             print("Cost: {}".format(cost))
 
-            with open("../models/info/{}-{}-{}-{}-{}-{}.txt".format(
-                    outfile, hidden_units, hidden_layers, epochs, batch_size, learning_rate), "a+") as info:
+            with open("../models/info/{}.txt".format(model_name), "a+") as info:
                 info.write("Cost: {}\n".format(cost))
                 info.close()
 
-        save_path = saver.save(sess, "../models/{}-{}-{}-{}-{}-{}.ckpt".format(
-            outfile, hidden_units, hidden_layers, epochs, batch_size, learning_rate))
+        save_path = saver.save(sess, "../models/{}/{}.ckpt".format(model_name, model_name))
 
-        print("Model saved in path: %s" % save_path)
+        print("Model saved in {}".format(save_path))
 
 
 if __name__ == "__main__":
