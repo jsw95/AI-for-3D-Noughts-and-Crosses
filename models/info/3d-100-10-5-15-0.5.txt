@@ -1,0 +1,21 @@
+Cost: 4.157
+Cost: 4.157
+Cost: 4.157
+Cost: 4.157
+Cost: 4.157
+
+5 games as first player vs RandomPlayer:
+W - D - L:
+5 - 0 - 0:
+
+5 games as second player vs RandomPlayer:
+W - D - L:
+5 - 0 - 0:
+
+50 games as first player vs RandomPlayer:
+W - D - L:
+48 - 0 - 2:
+
+50 games as second player vs RandomPlayer:
+W - D - L:
+47 - 0 - 3:

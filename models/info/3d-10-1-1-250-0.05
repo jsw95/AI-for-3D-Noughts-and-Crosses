@@ -1,0 +1,8 @@
+Training Data: 3d-r-r-gl<25.csv
+Instances: 83915
+Hidden Units: 10
+Hidden Layers: 1
+Epochs: 1
+Batch Size: 250
+Learning Rate: 0.05
+

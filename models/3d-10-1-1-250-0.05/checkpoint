@@ -1,0 +1,2 @@
+model_checkpoint_path: "3d-10-1-1-250-0.05.ckpt"
+all_model_checkpoint_paths: "3d-10-1-1-250-0.05.ckpt"
