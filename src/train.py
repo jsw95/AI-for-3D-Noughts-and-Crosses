@@ -115,3 +115,5 @@ if __name__ == "__main__":
              epochs=10,
              batch_size=15,
              learning_rate=0.5)
+
+    
