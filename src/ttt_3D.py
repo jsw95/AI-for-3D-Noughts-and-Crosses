@@ -112,9 +112,9 @@ class Game(object):
         for i in range(len(self.move_log)):
             data = []
             data.extend(self.board_log[i])
-            data.append(ohe(self.move_log[i][0]))
-            data.append(len(self.move_log))
-            data.append(self.winner * self.move_log[i][1])
+            data.append(ohe(self.move_log[i][0])) # one-hot moves
+            data.append(len(self.move_log)) # Length of game
+            data.append(self.winner * self.move_log[i][1]) # whether player won
             data_log.append(data)
 
         return data_log

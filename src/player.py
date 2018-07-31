@@ -7,23 +7,20 @@ def free_squares(board):
 
     return free
 
-class HumanPlayer(object):
 
+class HumanPlayer(object):
 
     def player(self):
         return self.__class__.__name__
 
-
-
     @staticmethod
     def move(board):
-
         print("Please input as: layer x-coord y-coord")
         coords = input("Please choose a position from the free squares: ")
 
         layer, x, y = coords.split(" ")
 
-        move = (int(layer)-1) * 16 + (int(y) - 1) * 4 + (int(x) - 1)
+        move = (int(layer) - 1) * 16 + (int(y) - 1) * 4 + (int(x) - 1)
 
         return move
 
@@ -43,16 +40,16 @@ class RandomPlayer(object):
 
 class AIPlayer(object):
 
-    def __init__(self, model="model"):
+    def __init__(self, model):
+        self.model = model
         tf.reset_default_graph()
-        self.imported_meta = tf.train.import_meta_graph("../models/{}.ckpt.meta".format(model))
-        # self.imported_meta = tf.train.import_meta_graph("/tmp/{}.ckpt.meta".format(model))
+        self.imported_meta = tf.train.import_meta_graph("../models/{}.ckpt.meta".format(self.model))
 
+    def player(self):
+        return self.__class__.__name__
 
-    def move(self,  board):
-
+    def move(self, board):
         with tf.Session() as sess:
-
             self.imported_meta.restore(sess, tf.train.latest_checkpoint('../models/'))
             # self.imported_meta.restore(sess, tf.train.latest_checkpoint('/tmp/'))
 
@@ -60,14 +57,9 @@ class AIPlayer(object):
 
             free = free_squares(board=board)
 
-            d = [i for i in enumerate(weights) if i[0] in free]
+            m = [i for i in enumerate(weights) if i[0] in free]
 
-            move_scores = sorted(d, key=lambda x: x[1], reverse=True)
+            move_scores = sorted(m, key=lambda x: x[1], reverse=True)
 
             return move_scores[0][0]
-
-
-
-
-
 

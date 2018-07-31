@@ -1,0 +1,26 @@
+Training Data: 3d-r-r-gl<25.csv
+Instances: 83915
+Hidden Units: 64
+Hidden Layers: 1
+Epochs: 10
+Batch Size: 15
+Learning Rate: 0.9
+
+Cost: 4.158
+Cost: 4.154
+Cost: 4.15
+Cost: 4.148
+Cost: 4.146
+Cost: 4.145
+Cost: 4.143
+Cost: 4.142
+Cost: 4.141
+Cost: 4.139
+
+50 games as second player vs RandomPlayer:
+W - D - L:
+40 - 0 - 10:
+
+50 games as first player vs RandomPlayer:
+W - D - L:
+46 - 0 - 4:
