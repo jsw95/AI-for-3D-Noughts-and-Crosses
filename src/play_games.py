@@ -66,6 +66,7 @@ if __name__ == "__main__":
     #          batch_size=15,
     #          learning_rate=0.5)
 
-    p3 = player.AIPlayer(model="3d-100-10-5-15-0.5")
-    play_game(p3, p2, iter=3, write_data=True, outfile="3d-t-r-gl-1000.csv", print_board=True)
+    p3 = player.AIPlayer(model="3d-100-2-25-25-0.5")
+    play_game(p3, p1, iter=50)
+    play_game(p1, p3, iter=50)
 

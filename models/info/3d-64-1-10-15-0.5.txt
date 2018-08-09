@@ -32,3 +32,102 @@ W - D - L:
 5 games as second player vs RandomPlayer:
 W - D - L:
 3 - 0 - 2:
+Training Data: 3d-r-r-gl<25.csv
+Instances: 83915
+Hidden Units: 64
+Hidden Layers: 1
+Epochs: 10
+Batch Size: 15
+Learning Rate: 0.5
+
+Training Data: 3d-r-r-gl<25.csv
+Instances: 83915
+Hidden Units: 64
+Hidden Layers: 1
+Epochs: 10
+Batch Size: 15
+Learning Rate: 0.5
+
+Training Data: 3d-r-r-gl<25.csv
+Instances: 83915
+Hidden Units: 64
+Hidden Layers: 1
+Epochs: 10
+Batch Size: 15
+Learning Rate: 0.5
+
+Training Data: 3d-r-r-gl<25.csv
+Instances: 83915
+Hidden Units: 64
+Hidden Layers: 1
+Epochs: 10
+Batch Size: 15
+Learning Rate: 0.5
+
+Cost: 4.158
+Cost: 4.158
+Cost: 4.156
+Cost: 4.153
+Cost: 4.151
+Training Data: 3d-r-r-gl<25.csv
+Instances: 10000
+Hidden Units: 64
+Hidden Layers: 1
+Epochs: 10
+Batch Size: 15
+Learning Rate: 0.5
+
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.157
+Training Data: 3d-r-r-gl<25.csv
+Instances: 83915
+Hidden Units: 64
+Hidden Layers: 1
+Epochs: 10
+Batch Size: 15
+Learning Rate: 0.5
+
+Cost: 4.158
+Cost: 4.157
+Training Data: 3d-r-r-gl-1000.csv
+Instances: 100000
+Hidden Units: 64
+Hidden Layers: 1
+Epochs: 10
+Batch Size: 15
+Learning Rate: 0.5
+
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.157
+Cost: 4.157
+Cost: 4.156
+Cost: 4.155
+
+10 games as first player vs RandomPlayer:
+W - D - L:
+2 - 0 - 8:
+
+10 games as first player vs RandomPlayer:
+W - D - L:
+5 - 0 - 5:
+
+10 games as first player vs RandomPlayer:
+W - D - L:
+6 - 0 - 4:
+
+50 games as first player vs RandomPlayer:
+W - D - L:
+26 - 0 - 24:

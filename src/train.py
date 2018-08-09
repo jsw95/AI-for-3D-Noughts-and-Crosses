@@ -1,12 +1,11 @@
 from player import *
-from ttt import *
 import csv
 import random
 import numpy as np
 
 
 def train_ai(
-        infile="3d-t-r-gl<25.csv",
+        infile="r-r-100000.csv",
         outfile="3d",
         hidden_units=10,
         hidden_layers=5,
@@ -22,12 +21,16 @@ def train_ai(
 
     with open("../data/" + infile, newline='') as csvfile:
         reader = csv.reader(csvfile)
-        win_data = [i for i in reader if (i[-1] == '1') and (int(i[-2]) < 25)]
-
-    inputs, labels = [], []
+        # win_data = [i for i in reader if (i[-1] == '1') and (int(i[-2]) < 25)]
+        win_data = [i for i in reader if (i[-1] == '1')]
+    inputs, labels, game_lengths, wins, reward = [], [], [], [], []
     for row in win_data:
         inputs.append([int(d) for d in row[:shape]])
         labels.append([int(d) for d in row[shape][1:len(row[shape]) - 1].split(',')])
+        #game_lengths.append(int(row[-2]))
+        #wins.append(int(row[-1]))
+        reward.append((1 / int(row[-2]) ** 2) * 100)
+
 
     with open("../models/info/{}.txt".format(model_name), "a+") as info:
         info.write("Training Data: {}\n".format(infile))
@@ -40,8 +43,10 @@ def train_ai(
 
     input_positions_ = tf.placeholder(tf.float32, shape=[None, shape], name="x")
     labels_ = tf.placeholder(tf.float32, shape=[None, shape])
+    learning_rate_ = tf.placeholder(tf.float32, shape=[batch_size, ])
 
     def pass_net(net_input):
+        # Each run through is a layer in neural net
         w1 = tf.Variable(tf.truncated_normal([shape, hidden_units], stddev=0.1))
         b1 = tf.Variable(tf.constant(0.1, shape=[hidden_units]))
         h1 = tf.tanh(tf.matmul(net_input, w1) + b1)
@@ -57,6 +62,11 @@ def train_ai(
     if hidden_layers > 1:
         for hidden_layer in range(hidden_layers - 1):
             output = pass_net(output)
+
+    # def reward_function(game_length, win):
+    #     reward = win * (1 / game_length)
+    #     return reward
+
 
     logits = tf.nn.softmax(output, name="logits")
 
@@ -92,7 +102,8 @@ def train_ai(
 
                 sess.run(train_step,
                          feed_dict={input_positions_: inputs[start:end],
-                                    labels_: labels[start:end]})
+                                    labels_: labels[start:end],
+                                    learning_rate_: reward[start:end]})
 
             cost = sess.run(cross_entropy, feed_dict={input_positions_: inputs,
                                                       labels_: labels})
@@ -109,11 +120,11 @@ def train_ai(
 
 
 if __name__ == "__main__":
-    train_ai(infile="3d-r-r-gl<25.csv",
-             hidden_units=64,
-             hidden_layers=1,
-             epochs=10,
-             batch_size=15,
+    train_ai(infile="r-r-250k.csv",
+             hidden_units=100,
+             hidden_layers=2,
+             epochs=25,
+             batch_size=25,
              learning_rate=0.5)
 
-    
+

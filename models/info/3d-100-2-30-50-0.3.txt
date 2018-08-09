@@ -1,0 +1,42 @@
+Training Data: r-r-100000.csv
+Instances: 100000
+Hidden Units: 100
+Hidden Layers: 2
+Epochs: 30
+Batch Size: 50
+Learning Rate: 0.3
+
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.159
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.158
+Cost: 4.157
+Cost: 4.157
+Cost: 4.157
+Cost: 4.157
+Cost: 4.157
+Cost: 4.156
+Cost: 4.156
+Cost: 4.156
+Cost: 4.155
+Cost: 4.155
+
+50 games as first player vs RandomPlayer:
+W - D - L:
+24 - 0 - 26:
