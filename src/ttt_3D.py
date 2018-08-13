@@ -59,7 +59,7 @@ class Game(object):
         if 0 not in self.board:
             self.end = True
 
-        """ fix this shit """
+
 
     def move(self, pos):
         if pos < 0 or pos > 63:

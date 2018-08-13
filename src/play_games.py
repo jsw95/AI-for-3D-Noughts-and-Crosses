@@ -31,27 +31,27 @@ def play_game(player1, player2, write_data=False, outfile="databoy.csv", iter=1,
             p2_wins += 1
         elif game.winner == 0:
             draws += 1
-
-        if write_data:
-            with open("../data/" + outfile, 'a', newline='') as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerows(game.output_data())
-
-    if str(player1.player()) == "AIPlayer":
-        with open("../models/info/" + player1.model + ".txt", 'a+') as info:
-            info.write("\n{} games as first player vs {}:\n".format(iter, str(player2.player())))
-            info.write("W - D - L:\n")
-            info.write("{} - {} - {}:\n".format(p1_wins, draws, p2_wins))
-            info.close()
-
-    elif str(player2.player()) == "AIPlayer":
-        with open("../models/info/" + player2.model + ".txt", 'a+') as info:
-            info.write("\n{} games as second player vs {}:\n".format(iter, str(player1.player())))
-            info.write("W - D - L:\n")
-            info.write("{} - {} - {}:\n".format(p2_wins, draws, p1_wins))
-            info.close()
-
-    print("P1 - D - P2\n{} - {} - {}".format(p1_wins, draws, p2_wins))
+    #
+    #     if write_data:
+    #         with open("../data/" + outfile, 'a', newline='') as csvfile:
+    #             writer = csv.writer(csvfile)
+    #             writer.writerows(game.output_data())
+    #
+    # if str(player1.player()) == "AIPlayer":
+    #     with open("../models/info/" + player1.model + ".txt", 'a+') as info:
+    #         info.write("\n{} games as first player vs {}:\n".format(iter, str(player2.player())))
+    #         info.write("W - D - L:\n")
+    #         info.write("{} - {} - {}:\n".format(p1_wins, draws, p2_wins))
+    #         info.close()
+    #
+    # elif str(player2.player()) == "AIPlayer":
+    #     with open("../models/info/" + player2.model + ".txt", 'a+') as info:
+    #         info.write("\n{} games as second player vs {}:\n".format(iter, str(player1.player())))
+    #         info.write("W - D - L:\n")
+    #         info.write("{} - {} - {}:\n".format(p2_wins, draws, p1_wins))
+    #         info.close()
+    #
+    # print("P1 - D - P2\n{} - {} - {}".format(p1_wins, draws, p2_wins))
 
 
 if __name__ == "__main__":

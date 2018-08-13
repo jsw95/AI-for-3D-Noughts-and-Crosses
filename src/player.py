@@ -3,15 +3,15 @@ import tensorflow as tf
 
 
 def free_squares(board):
-    free = [i for i in range(64) if board[i] == 0]
+    free = [i for i in range(9) if board[i] == 0]
 
     return free
 
 
 class HumanPlayer(object):
 
-    def player(self):
-        return self.__class__.__name__
+    def __init__(self):
+        self.player = "human"
 
     @staticmethod
     def move(board):
@@ -20,6 +20,7 @@ class HumanPlayer(object):
 
         layer, x, y = coords.split(" ")
 
+
         move = (int(layer) - 1) * 16 + (int(y) - 1) * 4 + (int(x) - 1)
 
         return move
@@ -27,8 +28,8 @@ class HumanPlayer(object):
 
 class RandomPlayer(object):
 
-    def player(self):
-        return self.__class__.__name__
+    def __init__(self):
+        self.player = "human"
 
     @staticmethod
     def move(board):
@@ -42,11 +43,12 @@ class AIPlayer(object):
 
     def __init__(self, model):
         self.model = model
+
         tf.reset_default_graph()
         self.imported_meta = tf.train.import_meta_graph("../models/{}/{}.ckpt.meta".format(self.model, self.model))
 
     def player(self):
-        return self.__class__.__name__
+        return "ai"
 
     def move(self, board):
         with tf.Session() as sess:
@@ -73,3 +75,5 @@ class AIPlayer(object):
 
 # a = AIPlayer(model="3d-100-1-10-15-0.5")
 # print()
+a = HumanPlayer()
+print(a.player)
