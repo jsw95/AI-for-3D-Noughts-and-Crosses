@@ -1,8 +1,10 @@
 import numpy as np
 from player import RandomPlayer
+from player import HumanPlayer
 from trainRL import AgentRL
 import random
 import matplotlib.pyplot as plt
+
 
 class Game(object):
 
@@ -19,7 +21,7 @@ class Game(object):
         self.total_reward = 0
         self.agent_wins = 0
         self.random_wins = 0
-
+        self.draws = 0
 
     winners = [
         [0, 1, 2],
@@ -37,15 +39,14 @@ class Game(object):
             if (self.board[win[0]] == self.board[win[1]]
                     and self.board[win[0]] == self.board[win[2]]
                     and self.board[win[0]] != 0):
-
                 self.winner = self.player_current
                 self.end = True
                 return True
 
+    def draw_check(self):
         if 0 not in self.board:
             self.end = True
             return True  # returns true for draw but no winner
-
 
     # def move(self, pos):
     #     if pos < 0 or pos > 8:
@@ -58,13 +59,11 @@ class Game(object):
     #     else:
     #         self.board[pos] = self.player_current
 
-
     def reset_game(self):
         self.board = [0] * 9
         self.player_current = 1
         self.winner = None
         self.end = False
-
 
     def print_board(self):
         def f(l):
@@ -87,112 +86,103 @@ class Game(object):
         free = [i for i in range(9) if self.board[i] == 0]
         return free
 
+    def play(self, agent, player, agent_first=1, e=0.1, print=False):
+        """
+        Main game playing function. Each call is one game.
+        Can choose random or human player against an agent.
+        Agent Q-table is updated after each game based on reward.
+        """
 
-    def play(self, agent, player, training=True, agent_first=1):
+        # Storing history of moves and boards (only relevant ones)
+        board_log, board_prev_log, move_log = [], [], []
 
-        if agent_first < 0.5:
-            print("Computer moves first")
+
+        if agent_first < 0.5:  # Who moves first
             move = player.move(self.board)
             self.board[int(move)] = self.player_current  # update board with move
             self.player_current *= -1
+            if print:
+                self.print_board()
 
-        # print("Starting while loop")
-        while True:
+        while True:  # Training loop
+            if print:
+                self.print_board()
+
             board_prev = str(self.board)
-            move = agent.move(self.board)
-
-            # print("Computer move: {}".format(move))
+            move = agent.move(self.board, epsilon=e)  # Agents move
             self.board[int(move)] = self.player_current
+            board = str(self.board)
 
-            win = self.win_check()
-            if win:
-                # print("Win? {}".format(win))
+            move_log.append(str(move))
+            board_prev_log.append(board_prev)
+            board_log.append(board)
+
+            if self.win_check():
                 reward = 1
                 self.agent_wins += 1
-                print("Agent Player Wins")
-
-
                 self.total_reward += reward
+                break
 
-                agent.update_qtable(str(self.board), board_prev, str(move), reward)
-
+            if self.draw_check():
+                reward = 0
+                self.draws += 1
                 break
 
             self.player_current *= -1
 
-            Rmove = player.move(self.board)
-            # print("Random move: {}".format(Rmove))
-            self.board[Rmove] = self.player_current
+            r_move = player.move(self.board)
+            self.board[r_move] = self.player_current
 
-            win = self.win_check()
-
-
-            if win:
-                # self.print_board()
-                # print("Win? {}".format(win))
+            if self.win_check():
                 reward = -1
                 self.random_wins += 1
-                print("Random Player Wins")
                 self.total_reward += reward
                 break
 
-            else:
+            if self.draw_check():
                 reward = 0
-
-
+                self.draws += 1
+                break
 
             self.player_current *= -1
-            agent.update_qtable(str(self.board), board_prev, str(move), reward)
-            board_prev = self.board
 
-
+        agent.update_qtable(board_log, board_prev_log, move_log, reward)
         self.reset_game()
 
 
+# Training and testing -- move to new file
 
-
-
-
-
-
-
-
-p1 = AgentRL(0.1, 0.9, 0, 1)
+p1 = AgentRL(0.01, 0.9, 0.9)
 p2 = RandomPlayer()
-# print(p1.player)
+p3 = HumanPlayer()
 reward_log = []
 game = Game(p1, p2)
-for i in range(25000):
+
+iter = 5000
+for i in range(iter):
     n = random.random()
-    print("\nGame number: {}".format(i))
-    game.play(p1,p2, agent_first=n)
+    if i%10000 == 0:
+        print("\nGame number: {}".format(i))
+    game.play(p1, p2, agent_first=n, e=(iter-i+1)/iter)
     reward_log.append(game.total_reward)
+
+
+game.agent_wins = 0
+game.random_wins = 0
+game.draws = 0
+for i in range(10000):
+    n = random.random()
+    if i%1000 == 10:
+        print("\nGame number: {}".format(i))
+    game.play(p1, p2, agent_first=n, e=0)
+
 print("Agent wins: {}".format(game.agent_wins))
+print("Draws: {}".format(game.draws))
 print("Random wins: {}".format(game.random_wins))
-# p1.print_Qtable()
-plt.plot(reward_log)
-plt.show()
+print(p1.Qtable["[0, 0, 0, 0, 0, 0, 0, 0, 0]"])
 
 
+for i in range(5):
+    n = random.random()
+    game.play(p1, p3, agent_first=n, e=0, print=True)
 
-
-
-
-    #        self.board_log.append([i * self.player_current for i in self.board])
-    #     self.move_log.append([pos, self.player_current])
-    # def output_data(self):
-    #
-    #     def ohe(i):
-    #         enc = [0] * 9
-    #         enc[i] = 1
-    #         return enc
-    #
-    #     data_log = []
-    #     for i in range(len(self.move_log)):
-    #         data = []
-    #         data.extend(self.board_log[i])
-    #         data.append(ohe(self.move_log[i][0]))
-    #         data.append(self.winner * self.move_log[i][1])
-    #         data_log.append(data)
-    #
-    #     return data_log

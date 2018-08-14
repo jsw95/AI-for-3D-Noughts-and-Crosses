@@ -16,14 +16,12 @@ class HumanPlayer(object):
     @staticmethod
     def move(board):
         print("Please input as: layer x-coord y-coord")
-        coords = input("Please choose a position from the free squares: ")
+        move = input("Please choose a position from the free squares: {}".format(board))
 
-        layer, x, y = coords.split(" ")
+        # layer, x, y = coords.split(" ")
+        # move = (int(layer) - 1) * 16 + (int(y) - 1) * 4 + (int(x) - 1)
 
-
-        move = (int(layer) - 1) * 16 + (int(y) - 1) * 4 + (int(x) - 1)
-
-        return move
+        return int(move)
 
 
 class RandomPlayer(object):
@@ -72,8 +70,3 @@ class AIPlayer(object):
             move_scores = sorted(m, key=lambda x: x[1], reverse=True)
 
             return move_scores[0][0]
-
-# a = AIPlayer(model="3d-100-1-10-15-0.5")
-# print()
-a = HumanPlayer()
-print(a.player)
