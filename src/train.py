@@ -78,6 +78,7 @@ def train_ai(
         logits=logits,
         labels=labels_))
 
+
     train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
 
     with tf.Session() as sess:

@@ -1,9 +1,10 @@
 import numpy as np
 from player import RandomPlayer
 from player import HumanPlayer
-from trainRL import AgentRL
+from player import AgentRL
 import random
 import matplotlib.pyplot as plt
+import tensorflow as tf
 
 
 class Game(object):
@@ -86,34 +87,43 @@ class Game(object):
         free = [i for i in range(9) if self.board[i] == 0]
         return free
 
-    def play(self, agent, player, agent_first=1, e=0.1, print=False):
+    def play(self, agent, player, sess, prediction, q_vals, inputs,
+             agent_first=1, e=0.1, print_data=False):
         """
         Main game playing function. Each call is one game.
         Can choose random or human player against an agent.
         Agent Q-table is updated after each game based on reward.
+        Returns game history
         """
+
+        self.reset_game()
 
         # Storing history of moves and boards (only relevant ones)
         board_log, board_prev_log, move_log = [], [], []
-
 
         if agent_first < 0.5:  # Who moves first
             move = player.move(self.board)
             self.board[int(move)] = self.player_current  # update board with move
             self.player_current *= -1
-            if print:
+            if print_data:
                 self.print_board()
 
         while True:  # Training loop
-            if print:
+            if print_data:
                 self.print_board()
 
-            board_prev = str(self.board)
-            move = agent.move(self.board, epsilon=e)  # Agents move
-            self.board[int(move)] = self.player_current
-            board = str(self.board)
+            board_prev = [i for i in self.board]
 
-            move_log.append(str(move))
+            if agent.training is False:
+                move = agent.move2(self.board, e)  # Agents move
+
+            else:
+
+                move = agent.move(self.board, e, sess, prediction, q_vals, inputs)  # Agents move
+            self.board[int(move)] = self.player_current
+            board = [i for i in self.board]
+
+            move_log.append(move)
             board_prev_log.append(board_prev)
             board_log.append(board)
 
@@ -129,6 +139,8 @@ class Game(object):
                 break
 
             self.player_current *= -1
+            if print_data:
+                self.print_board()
 
             r_move = player.move(self.board)
             self.board[r_move] = self.player_current
@@ -146,43 +158,47 @@ class Game(object):
 
             self.player_current *= -1
 
-        agent.update_qtable(board_log, board_prev_log, move_log, reward)
-        self.reset_game()
+        # agent.update_qtable(board_log, board_prev_log, move_log, reward)
+        reward_log = [0] * len(move_log)
+        reward_log[-1] = reward
+
+        return [board_prev_log, move_log, board_log, reward_log]
 
 
 # Training and testing -- move to new file
+if __name__ == "__main__":
 
-p1 = AgentRL(0.01, 0.9, 0.9)
-p2 = RandomPlayer()
-p3 = HumanPlayer()
-reward_log = []
-game = Game(p1, p2)
-
-iter = 5000
-for i in range(iter):
+    p1 = AgentRL(0.01, 0.9, 0.9, model="rl_model", training=False)
+    p2 = RandomPlayer()
+    p3 = HumanPlayer()
+    reward_log = []
+    game = Game(p1, p2)
     n = random.random()
-    if i%10000 == 0:
-        print("\nGame number: {}".format(i))
-    game.play(p1, p2, agent_first=n, e=(iter-i+1)/iter)
-    reward_log.append(game.total_reward)
 
 
-game.agent_wins = 0
-game.random_wins = 0
-game.draws = 0
-for i in range(10000):
-    n = random.random()
-    if i%1000 == 10:
-        print("\nGame number: {}".format(i))
-    game.play(p1, p2, agent_first=n, e=0)
+     
+    iter = 1000
+    for i in range(iter):
+        n = random.random()
+        if i % 100 == 0:
+            print("\nGame number: {}".format(i))
+        game.play(p1, p2, None, 1, 2, 3, agent_first=n, e=0)
+        reward_log.append(game.total_reward)
 
-print("Agent wins: {}".format(game.agent_wins))
-print("Draws: {}".format(game.draws))
-print("Random wins: {}".format(game.random_wins))
-print(p1.Qtable["[0, 0, 0, 0, 0, 0, 0, 0, 0]"])
+    # game.agent_wins = 0
+    # game.random_wins = 0
+    # game.draws = 0
+    # for i in range(3):
+    #     n = random.random()
+    #     if i % 1000 == 10:
+    #         print("\nGame number: {}".format(i))
+    #     game.play(p1, p3, None, None, None, None,  agent_first=n, e=0, print_data=True)
 
+    print("Agent wins: {}".format(game.agent_wins))
+    print("Draws: {}".format(game.draws))
+    print("Random wins: {}".format(game.random_wins))
+    # print(p1.Qtable["[0, 0, 0, 0, 0, 0, 0, 0, 0]"])
 
-for i in range(5):
-    n = random.random()
-    game.play(p1, p3, agent_first=n, e=0, print=True)
-
+    # for i in range(5):
+    #     n = random.random()
+    #     game.play(p1, p3, agent_first=n, e=0, print=True)
