@@ -1,0 +1,2 @@
+model_checkpoint_path: "rl_model_3d_(3d).ckpt"
+all_model_checkpoint_paths: "rl_model_3d_(3d).ckpt"

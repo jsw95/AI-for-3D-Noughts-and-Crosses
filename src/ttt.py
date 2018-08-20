@@ -14,11 +14,7 @@ class Game(object):
         self.player = player
         self.player_current = 1
         self.winner = None
-        self.end = False
         self.board = [0] * 9
-        self.board_log = []
-        self.move_log = []
-        self.print = False
         self.total_reward = 0
         self.agent_wins = 0
         self.random_wins = 0
@@ -41,12 +37,10 @@ class Game(object):
                     and self.board[win[0]] == self.board[win[2]]
                     and self.board[win[0]] != 0):
                 self.winner = self.player_current
-                self.end = True
                 return True
 
     def draw_check(self):
         if 0 not in self.board:
-            self.end = True
             return True  # returns true for draw but no winner
 
     # def move(self, pos):
@@ -64,7 +58,6 @@ class Game(object):
         self.board = [0] * 9
         self.player_current = 1
         self.winner = None
-        self.end = False
 
     def print_board(self):
         def f(l):
@@ -87,7 +80,7 @@ class Game(object):
         free = [i for i in range(9) if self.board[i] == 0]
         return free
 
-    def play(self, agent, player, sess, prediction, q_vals, inputs,
+    def play(self, agent, player, sess=None, prediction=None, q_vals=None, inputs=None,
              agent_first=1, e=0.1, print_data=False):
         """
         Main game playing function. Each call is one game.
@@ -100,9 +93,10 @@ class Game(object):
 
         # Storing history of moves and boards (only relevant ones)
         board_log, board_prev_log, move_log = [], [], []
+        # n_moves = 0
 
         if agent_first < 0.5:  # Who moves first
-            move = player.move(self.board)
+            move = player.move(self.board)#, 0.2)# sess, prediction, q_vals, inputs)
             self.board[int(move)] = self.player_current  # update board with move
             self.player_current *= -1
             if print_data:
@@ -112,16 +106,21 @@ class Game(object):
             if print_data:
                 self.print_board()
 
-            board_prev = [i for i in self.board]
+            board_prev = [i * self.player_current for i in self.board]
 
             if agent.training is False:
-                move = agent.move2(self.board, e)  # Agents move
+                # print("Current player: {}".format(self.player_current))
+                # print("Actual board {}".format(self.board))
+                # print("Input board board {}".format([i * self.player_current for i in self.board]))
+                move = agent.move([i * self.player_current for i in self.board], e)  # Agents move
+                # print("move chosen {}".format(move))
 
             else:
+                move = agent.training_move([i * self.player_current for i in self.board], e, sess, prediction, q_vals, inputs)  # Agents move
 
-                move = agent.move(self.board, e, sess, prediction, q_vals, inputs)  # Agents move
             self.board[int(move)] = self.player_current
-            board = [i for i in self.board]
+            board = [i * self.player_current for i in self.board]
+
 
             move_log.append(move)
             board_prev_log.append(board_prev)
@@ -142,7 +141,15 @@ class Game(object):
             if print_data:
                 self.print_board()
 
-            r_move = player.move(self.board)
+            if player.player == "agentRL":
+                if player.training is False:
+                    r_move = player.move([i * self.player_current for i in self.board], 0.2)
+                else:
+                    r_move = player.training_move(
+                        [i * self.player_current for i in self.board], 0.2, sess, prediction, q_vals, inputs)
+
+            else:
+                r_move = player.move(self.board)
             self.board[r_move] = self.player_current
 
             if self.win_check():
@@ -168,7 +175,8 @@ class Game(object):
 # Training and testing -- move to new file
 if __name__ == "__main__":
 
-    p1 = AgentRL(0.01, 0.9, 0.9, model="rl_model", training=False)
+    p1 = AgentRL(0.01, 0.9, 0.9, model="rl_model5-l2", training=False)
+    # p1x = AgentRL(0.01, 0.9, 0.9, model="rl_model2", training=False)
     p2 = RandomPlayer()
     p3 = HumanPlayer()
     reward_log = []
@@ -176,14 +184,16 @@ if __name__ == "__main__":
     n = random.random()
 
 
-     
-    iter = 1000
+
+    iter = 10
     for i in range(iter):
         n = random.random()
-        if i % 100 == 0:
+        if i % 10 == 0:
             print("\nGame number: {}".format(i))
-        game.play(p1, p2, None, 1, 2, 3, agent_first=n, e=0)
+        game.play(p1, p2, agent_first=n, e=0, print_data=False)
         reward_log.append(game.total_reward)
+
+
 
     # game.agent_wins = 0
     # game.random_wins = 0
@@ -192,13 +202,14 @@ if __name__ == "__main__":
     #     n = random.random()
     #     if i % 1000 == 10:
     #         print("\nGame number: {}".format(i))
-    #     game.play(p1, p3, None, None, None, None,  agent_first=n, e=0, print_data=True)
+    #     game.play(p1, p1x, None, None, None, None,  agent_first=n, e=0.1, print_data=True)
 
     print("Agent wins: {}".format(game.agent_wins))
     print("Draws: {}".format(game.draws))
     print("Random wins: {}".format(game.random_wins))
     # print(p1.Qtable["[0, 0, 0, 0, 0, 0, 0, 0, 0]"])
 
+
     # for i in range(5):
-    #     n = random.random()
+    #     n = random.random()t
     #     game.play(p1, p3, agent_first=n, e=0, print=True)

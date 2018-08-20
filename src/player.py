@@ -4,10 +4,13 @@ import random
 
 
 def free_squares(board):
-    free = [i for i in range(9) if board[i] == 0]
+    free = [i for i in range(len(board)) if board[i] == 0]
 
     return free
 
+class FreeSquareError(Exception):
+    """Error for choice not being a free square"""
+    pass
 
 class HumanPlayer(object):
 
@@ -16,11 +19,25 @@ class HumanPlayer(object):
 
     @staticmethod
     def move(board):
+        free = free_squares(board)
         print("Please input as: layer x-coord y-coord")
-        move = input("Please choose a position from the free squares: {}".format(board))
+        # move = input("Please choose a position from the free squares: {}".format(board))
+        # move = g.print_num()
 
-        # layer, x, y = coords.split(" ")
-        # move = (int(layer) - 1) * 16 + (int(y) - 1) * 4 + (int(x) - 1)
+        while True:
+            try:
+                coords = input()
+                layer, x, y = coords.split(" ")
+                move = (int(layer) - 1) * 16 + (int(y) - 1) * 4 + (int(x) - 1)
+                if move in free:
+                    break
+                else:
+                    raise FreeSquareError
+
+            except ValueError:
+                print("Invalid entry. Try again...")
+            except FreeSquareError:
+                print("Your choice is not a free square. Try again...")
 
         return int(move)
 
@@ -43,7 +60,6 @@ class AIPlayer(object):
     def __init__(self, model):
         self.model = model
 
-
         tf.reset_default_graph()
         self.imported_meta = tf.train.import_meta_graph("../models/{}/{}.ckpt.meta".format(self.model, self.model))
 
@@ -53,14 +69,6 @@ class AIPlayer(object):
     def move(self, board):
         with tf.Session() as sess:
             self.imported_meta.restore(sess, tf.train.latest_checkpoint('../models/{}/'.format(self.model)))
-            # self.imported_meta.restore(sess, tf.train.latest_checkpoint('/tmp/'))
-
-            # graph = tf.get_default_graph()
-            # logits = graph.get_tensor_by_name('logits:0')
-            # x = graph.get_tensor_by_name('x:0')
-            # self.imported_meta.restore(sess, "../models/{}.ckpt.data-00000-of-00001".format(self.model))
-            # weights = sess.run(logits, feed_dict={x: [board]})[0]
-
 
 
             weights = sess.run('logits:0', feed_dict={'x:0': [board]})[0]
@@ -76,22 +84,20 @@ class AIPlayer(object):
 
 class AgentRL(object):
 
-    def __init__(self, alpha, gamma, epsilon, model, training=True):
-        self.alpha = alpha
-        self.gamma = gamma
+    def __init__(self, epsilon, model, training=True):
         self.epsilon = epsilon
         self.model = model
+        self.player = "agentRL"
         self.Qtable = {}
         self.training = training
         if not self.training:
             tf.reset_default_graph()
             self.imported_meta = tf.train.import_meta_graph("../models/{}/{}.ckpt.meta".format(self.model, self.model))
 
-
-    def move(self, board, epsilon, sess, prediction, q_vals, inputs):
+    def training_move(self, board, e, sess, prediction, q_vals, inputs):
         free = free_squares(board)
 
-        if random.random() < epsilon:
+        if random.random() < e:
             move = np.random.choice(free)
             return move
 
@@ -101,40 +107,39 @@ class AgentRL(object):
                 # with tf.Session() as sess:
                 self.imported_meta.restore(sess, tf.train.latest_checkpoint('../models/{}/'.format(self.model)))
 
-
             pred, q_vals_out = sess.run([prediction, q_vals], feed_dict={inputs: [board]})
 
             # Returns the highest scoring free square
             m = [i for i in enumerate(q_vals_out[0]) if i[0] in free]
             move_scores = sorted(m, key=lambda x: x[1], reverse=True)
 
-            # print("Current Board: {}".format(board))
-            # print("Move chosen: {}".format(move_scores[0][0]))
-
             return move_scores[0][0]
 
-
-    def move2(self, board, epsilon):
+    def move(self, board, e):
         free = free_squares(board)
 
-        if random.random() < epsilon:
+        if random.random() < e:
             move = np.random.choice(free)
             return move
 
         else:
-
             with tf.Session() as sess:
+
                 self.imported_meta.restore(sess, tf.train.latest_checkpoint('../models/{}/'.format(self.model)))
-
-
                 q_vals_out = sess.run(["q_values:0"], feed_dict={"x:0": [board]})
 
-
-                # Returns the highest scoring free square
+                # Returns free squares ranked by score
                 m = [i for i in enumerate(q_vals_out[0][0]) if i[0] in free]
                 move_scores = sorted(m, key=lambda x: x[1], reverse=True)
 
-                return move_scores[0][0]
+                # Chooses randomly from the top n moves
+                top_n = 4
+                if top_n < len(move_scores):
+                    move_rank = random.randint(0, top_n)
+                else:
+                    move_rank = 0
+
+                return move_scores[move_rank][0]
 
 
 
@@ -152,11 +157,6 @@ class AgentRL(object):
 
     def print_qtable(self):
         [print(i) for i in self.Qtable.items()]
-
-
-
-
-
 
     # def update_qtable(self, board_log, board_prev_log, move_log, reward):
     #     """
