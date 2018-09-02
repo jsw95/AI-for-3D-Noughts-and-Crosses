@@ -1,41 +1,40 @@
 import numpy as np
-# from ttt import game
+# from ttt import Game
 from ttt_3D import Game
-from player import RandomPlayer
-from player import HumanPlayer
-from player import AgentRL
+from player import *
 import random
 import matplotlib.pyplot as plt
-import tensorflow as tf
+import csv
+import pickle
 
 
-
-
-# Training and testing -- move to new file
 if __name__ == "__main__":
 
-    p1 = AgentRL(0, model="baseline_3d", training=False)
-    # p1x = AgentRL(0.01, 0.9, 0.9, model="rl_model2", training=False)
-    p2 = RandomPlayer()
+    p1x = AgentRL(0, model="3d-working-50k-winner", training=False)
+    # p1 = AgentRL(0, model="2d-layers-nodes-2x200", training=False)
+    # p1x = AgentRL(0, model="test3", training=False)
+
+    p1 = AgentRLTable(0.01, 0.9, 0.9, model="qtable.pkl")
+    # p2 = AgentRLTable(0.01, 0.9, 0.9)
+
+    pS = SmartPlayer()
+    p4 = RandomPlayer()
     p3 = HumanPlayer()
     reward_log = []
-    game = Game(p1, p2)
-    n = random.random()
+    game = Game(p1, pS)
 
 
 
-    iter = 5
+    iter = 100
     for i in range(iter):
-        n = random.random()
-        if i % 100 == 0:
+        if i % 10 == 0:
             print("\nGame number: {}".format(i))
-        game.play(p1, p3, agent_first=n, e=0, print_data=True)
-        reward_log.append(game.total_reward)
+            reward_log.append((game.agent_wins - game.random_wins)/500)
+            print((game.agent_wins - game.random_wins)/1000)
+            game.random_wins = 0
+            game.agent_wins = 0
+        # game.play(p1, pS, agent_first=i%2, e=max(0.1, (iter - i)/iter), print_data=False)
+        game.play(p1x, pS, agent_first=i % 2, e=0, print_data=False)
 
 
 
-
-    print("Agent wins: {}".format(game.agent_wins))
-    print("Draws: {}".format(game.draws))
-    print("Random wins: {}".format(game.random_wins))
-    # print(p1.Qtable["[0, 0, 0, 0, 0, 0, 0, 0, 0]"])

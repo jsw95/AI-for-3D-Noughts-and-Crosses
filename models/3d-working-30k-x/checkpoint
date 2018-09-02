@@ -1,0 +1,2 @@
+model_checkpoint_path: "3d-working-30k-x.ckpt"
+all_model_checkpoint_paths: "3d-working-30k-x.ckpt"

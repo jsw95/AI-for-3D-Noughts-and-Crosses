@@ -14,6 +14,14 @@ def train_ai(
         learning_rate=0.25,
         shape=64):
 
+    """
+    The training algorithm for supervised learning approach
+    Data is read from existing csv files of random play and is fed into NN
+    Inputs are current board, whether the game was won by that player and game length
+    The label that is being trained on is the move that was made
+    Only moves that formed a winning game, less than N moves long were used to generate a fast winning strategy
+    """
+
     tf.reset_default_graph()
 
     model_name = "{}-{}-{}-{}-{}-{}".format(
@@ -62,10 +70,6 @@ def train_ai(
     if hidden_layers > 1:
         for hidden_layer in range(hidden_layers - 1):
             output = pass_net(output)
-
-    # def reward_function(game_length, win):
-    #     reward = win * (1 / game_length)
-    #     return reward
 
 
     logits = tf.nn.softmax(output, name="logits")

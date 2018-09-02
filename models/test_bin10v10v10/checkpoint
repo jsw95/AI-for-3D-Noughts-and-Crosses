@@ -1,0 +1,2 @@
+model_checkpoint_path: "test_bin10v10v10.ckpt"
+all_model_checkpoint_paths: "test_bin10v10v10.ckpt"

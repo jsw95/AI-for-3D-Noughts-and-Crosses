@@ -1,0 +1,2 @@
+model_checkpoint_path: "2d-35ke.ckpt"
+all_model_checkpoint_paths: "2d-35ke.ckpt"

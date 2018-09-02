@@ -1,0 +1,2 @@
+model_checkpoint_path: "testSmart3x.ckpt"
+all_model_checkpoint_paths: "testSmart3x.ckpt"

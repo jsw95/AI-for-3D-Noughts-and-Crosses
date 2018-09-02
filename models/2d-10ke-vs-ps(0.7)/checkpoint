@@ -1,0 +1,2 @@
+model_checkpoint_path: "2d-10ke-vs-ps(0.7).ckpt"
+all_model_checkpoint_paths: "2d-10ke-vs-ps(0.7).ckpt"

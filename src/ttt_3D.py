@@ -11,6 +11,7 @@ class Game(object):
         self.board = [0] * 64
         self.print = False
         self.winners = self.generate_wins()
+        self.winners_back1 = self.winners_back1()
         self.total_reward = 0
         self.agent_wins = 0
         self.random_wins = 0
@@ -18,6 +19,7 @@ class Game(object):
 
     @staticmethod
     def generate_wins():
+        """All 76 winning combos for 4x4x4 Noughts and Crosses"""
         wins = []
 
         for i in range(16):
@@ -59,61 +61,18 @@ class Game(object):
                     and self.board[win[0]] == self.board[win[3]]
                     and self.board[win[0]] != 0):
                 self.winner = self.player_current
-                self.end = True
                 return True
+
+    def winners_back1(self):
+        winners_back1 = []
+        for win in self.winners:
+            for p in range(len(win)):
+                winners_back1.append(([x for i, x in enumerate(win) if i != p], win[p]))
+        return winners_back1
 
     def draw_check(self):
         if 0 not in self.board:
-            self.end = True
             return True  # returns true for draw but no winner
-
-
-
-
-    #
-    # def move(self, pos):
-    #     if pos < 0 or pos > 63:
-    #         print("Please enter a square between 1 and 64")
-    #         # self.move(pos=pos)
-    #
-    #     elif self.board[pos] != 0:
-    #         print("Please choose a blank square")
-    #         # self.move(pos=pos)
-    #     else:
-    #         self.board[pos] = self.player_current
-
-    # def print_board(self):
-    #     def f(l):
-    #         if l == 0:
-    #             return ' '
-    #         elif l == 1:
-    #             return 'X'
-    #         elif l == -1:
-    #             return 'O'
-    #
-    #     b = self.board  # Cleaner formatting
-    #
-    #     for i in range(4):
-    #         print('\n-----------------')
-    #         print('| {} | {} | {} | {} |'.format(
-    #             f(self.board[0 + 16 * i]), f(self.board[1 + 16 * i]), f(self.board[2 + 16 * i]),
-    #             f(self.board[3 + 16 * i])))
-    #         print('-----------------')
-    #         print('| {} | {} | {} | {} |'.format(
-    #             f(self.board[4 + 16 * i]), f(self.board[5 + 16 * i]), f(self.board[6 + 16 * i]),
-    #             f(self.board[7 + 16 * i])))
-    #         print('-----------------  Layer {}'.format(i + 1))
-    #
-    #         print('| {} | {} | {} | {} |'.format(
-    #             f(self.board[8 + 16 * i]), f(self.board[9 + 16 * i]), f(self.board[10 + 16 * i]),
-    #             f(self.board[11 + 16 * i])))
-    #         print('-----------------')
-    #         print('| {} | {} | {} | {} |'.format(
-    #             f(self.board[12 + 16 * i]), f(self.board[13 + 16 * i]), f(self.board[14 + 16 * i]),
-    #             f(self.board[15 + 16 * i])))
-    #         print('\\---------------\\')
-
-
 
     def print_board(self):
         def f(l):
@@ -151,24 +110,42 @@ class Game(object):
         free = [i for i in range(len(self.board)) if self.board[i] == 0]
         return free
 
-    def play(self, agent, player, sess=None, prediction=None, q_vals=None, inputs=None,
+    def bin_board(self, board):
+        b_p1 = [1 if i == 1 else 0 for i in board]
+        b_p2 = [1 if i == -1 else 0 for i in board]
+        bin_board = b_p1 + b_p2
+        return bin_board
+
+    # One hot encoding, used for converting moves
+    @staticmethod
+    def ohe(i):
+        enc = [0] * 64
+        enc[i] = 1
+        return enc
+
+    def play(self, agent, player, sess=None, q_vals=None, inputs=None,
              agent_first=1, e=0, print_data=False):
         """
         Main game playing function. Each call is one game.
         Can choose random or human player against an agent.
-        Agent Q-table is updated after each game based on reward.
-        Returns game history
+        Returns game history of states, actions and rewards
         """
 
         self.reset_game()
+        winning_move = None
 
         # Storing history of moves and boards (only relevant ones)
         board_log, board_prev_log, move_log = [], [], []
-        # n_moves = 0
 
         if agent_first < 0.5:  # Who moves first
+
+            # determines who other player is. needed for agent epsilon value
             if player.player == "agentRL":
-                move_ = player.move([i * self.player_current for i in self.board], e=player.epsilon)
+                move_ = player.move(self.bin_board([i * self.player_current for i in self.board]), e=player.epsilon)
+
+            elif player.player == "smart":
+                move_ = player.smart_move(self.board, self.winners_back1, e=e)
+
             else:
                 move_ = player.move(self.board)
             self.board[int(move_)] = self.player_current  # update board with move
@@ -180,29 +157,32 @@ class Game(object):
             if print_data:
                 self.print_board()
 
-            board_prev = [i * self.player_current for i in self.board]
+            board_prev = self.bin_board([i * self.player_current for i in self.board])
+            # board_prev = str(self.board)
 
             if agent.training is False:
-                move = agent.move(board_prev, e)  # Agents move
-
+                move = agent.move(board_prev, e)
+                # move = agent.move(self.board, e)
             else:
-                move = agent.training_move(board_prev, e, sess, prediction, q_vals, inputs)  # Agents move
+                move = agent.training_move(board_prev, e, sess, q_vals, inputs)  # Agents move if training
 
             self.board[int(move)] = self.player_current
+            board = self.bin_board([i * self.player_current for i in self.board])  # * by current player to ensure same point of view
 
-            board = [i * self.player_current for i in self.board]
-
-            move_log.append(move)
+            # # Adding the (s', a, s, r) to game history
+            move_log.append(self.ohe(move))
             board_prev_log.append(board_prev)
             board_log.append(board)
+
+            # move_log.append(move)  # for q-table
+            # board_prev_log.append(board_prev)
+            # board_log.append(str(self.board))
 
             if self.win_check():
                 reward = 1
                 self.agent_wins += 1
-                # self.total_reward += reward
                 break
-
-            if self.draw_check():
+            elif self.draw_check():
                 reward = 0
                 self.draws += 1
                 break
@@ -211,50 +191,52 @@ class Game(object):
             if print_data:
                 self.print_board()
 
+            # determines who other player is. needed for agent epsilon value
             if player.player == "agentRL":
-                move_ = player.move(board, e=player.epsilon)
+                move_ = player.move(self.bin_board([i * self.player_current for i in self.board]), e=player.epsilon)
+
+            elif player.player == "smart":
+                move_ = player.smart_move(self.board, self.winners_back1, e=(e*1.5))
+
             else:
-                move_ = player.move(self.board)
+                move_ = player.move(self.board)  # RandomPlayer or HumanPlayer move
             self.board[move_] = self.player_current
 
-            if self.win_check():
-                reward = -5
-                self.random_wins += 1
-                # self.total_reward += reward
-                break
 
-            if self.draw_check():
+            if self.win_check():
+                reward = -1
+                winning_move = move_
+
+                self.random_wins += 1
+                break
+            elif self.draw_check():
                 reward = 0
                 self.draws += 1
                 break
 
             self.player_current *= -1
 
-        # agent.update_qtable(board_log, board_prev_log, move_log, reward)
+        # agent.update_qtable(board_log, board_prev_log, move_log, reward)  # uncomment for q-table
         reward_log = [0] * len(move_log)
         reward_log[-1] = reward
 
-        return [board_prev_log, move_log, board_log, reward_log]
+        return board_prev_log, move_log, board_log, reward_log, winning_move
 
 
 
 
     # def output_data(self):
-    #
-    #     def ohe(i):
-    #         enc = [0] * 64
-    #         enc[i] = 1
-    #         return enc
+    #     """ Data output of game used for Supervised Learning"""
     #
     #     data_log = []
     #     for i in range(len(self.move_log)):
     #         data = []
     #         data.extend(self.board_log[i])
-    #         data.append(ohe(self.move_log[i][0])) # one-hot moves
-    #         data.append(len(self.move_log)) # Length of game
-    #         data.append(self.winner * self.move_log[i][1]) # whether player won
+    #         data.append(self.ohe(self.move_log[i][0]))  # one-hot moves
+    #         data.append(len(self.move_log))  # Length of game
+    #         data.append(self.winner * self.move_log[i][1])  # whether player won
     #         data_log.append(data)
-        # return data_log
+    #     return data_log
 
     # def advance(self, pos):
     #

@@ -18,6 +18,7 @@ class Game(object):
         self.total_reward = 0
         self.agent_wins = 0
         self.random_wins = 0
+        self.winners_back1 = self.winners_back1()
         self.draws = 0
 
     winners = [
@@ -59,6 +60,13 @@ class Game(object):
         self.player_current = 1
         self.winner = None
 
+    def winners_back1(self):
+        winners_back1 = []
+        for win in self.winners:
+            for p in range(len(win)):
+                winners_back1.append(([x for i, x in enumerate(win) if i != p], win[p]))
+        return winners_back1
+
     def print_board(self):
         def f(l):
             if l == 0:
@@ -80,25 +88,47 @@ class Game(object):
         free = [i for i in range(9) if self.board[i] == 0]
         return free
 
-    def play(self, agent, player, sess=None, prediction=None, q_vals=None, inputs=None,
-             agent_first=1, e=0.1, print_data=False):
+    def bin_board(self, board):
+        b_p1 = [1 if i == 1 else 0 for i in board]
+        b_p2 = [1 if i == -1 else 0 for i in board]
+        bin_board = b_p1 + b_p2
+        return bin_board
+
+    # One hot encoding, used for converting moves
+    @staticmethod
+    def ohe(i):
+        enc = [0] * 9
+        enc[i] = 1
+        return enc
+
+    def play(self, agent, player, sess=None, q_vals=None, inputs=None,
+             agent_first=1, e=0, print_data=False):
         """
         Main game playing function. Each call is one game.
         Can choose random or human player against an agent.
-        Agent Q-table is updated after each game based on reward.
-        Returns game history
+        Returns game history of states, actions and rewards
         """
 
         self.reset_game()
 
         # Storing history of moves and boards (only relevant ones)
         board_log, board_prev_log, move_log = [], [], []
-        # n_moves = 0
 
         if agent_first < 0.5:  # Who moves first
-            move = player.move(self.board)#, 0.2)# sess, prediction, q_vals, inputs)
-            self.board[int(move)] = self.player_current  # update board with move
+
+            # determines who other player is. needed for agent epsilon value
+            if player.player == "agentRL":
+                move_ = player.move(self.bin_board([i * self.player_current for i in self.board]), e=player.epsilon)
+
+            elif player.player == "smart":
+                move_ = player.smart_move(self.board, self.winners_back1)
+
+            else:
+                move_ = player.move(self.board)
+
+            self.board[int(move_)] = self.player_current  # update board with move
             self.player_current *= -1
+
             if print_data:
                 self.print_board()
 
@@ -106,22 +136,28 @@ class Game(object):
             if print_data:
                 self.print_board()
 
-            board_prev = [i * self.player_current for i in self.board]
+            if agent.deep:
+                board_prev = self.bin_board([i * self.player_current for i in self.board])
+            else:
+                board_prev = str(self.board)  # For q-table
 
             if agent.training is False:
-                # print("Current player: {}".format(self.player_current))
-                # print("Actual board {}".format(self.board))
-                # print("Input board board {}".format([i * self.player_current for i in self.board]))
-                move = agent.move([i * self.player_current for i in self.board], e)  # Agents move
-                # print("move chosen {}".format(move))
-
+                if agent.deep:
+                    move = agent.move(board_prev, e)
+                else:
+                    move = agent.move(self.board, e)
             else:
-                move = agent.training_move([i * self.player_current for i in self.board], e, sess, prediction, q_vals, inputs)  # Agents move
+                move = agent.training_move(board_prev, e, sess, q_vals, inputs) # Agents move if training
 
             self.board[int(move)] = self.player_current
-            board = [i * self.player_current for i in self.board]
 
+            if agent.deep:
+                board = self.bin_board([i * self.player_current for i in self.board])  # * by current player to ensure same point of view
+                move = self.ohe(move)
+            else:
+                board = self.board  # for q-table
 
+            # Adding the (s', a, s, r) to game history
             move_log.append(move)
             board_prev_log.append(board_prev)
             board_log.append(board)
@@ -129,10 +165,8 @@ class Game(object):
             if self.win_check():
                 reward = 1
                 self.agent_wins += 1
-                self.total_reward += reward
                 break
-
-            if self.draw_check():
+            elif self.draw_check():
                 reward = 0
                 self.draws += 1
                 break
@@ -141,75 +175,36 @@ class Game(object):
             if print_data:
                 self.print_board()
 
+            # determines who other player is. needed for agent epsilon value
             if player.player == "agentRL":
-                if player.training is False:
-                    r_move = player.move([i * self.player_current for i in self.board], 0.2)
-                else:
-                    r_move = player.training_move(
-                        [i * self.player_current for i in self.board], 0.2, sess, prediction, q_vals, inputs)
+                move_ = player.move(self.bin_board([i * self.player_current for i in self.board]), e=player.epsilon)
+
+            elif player.player == "smart":
+                move_ = player.smart_move(self.board, self.winners_back1)
 
             else:
-                r_move = player.move(self.board)
-            self.board[r_move] = self.player_current
+                move_ = player.move(self.board)  # RandomPlayer or HumanPlayer move
+
+            self.board[move_] = self.player_current
 
             if self.win_check():
                 reward = -1
                 self.random_wins += 1
-                self.total_reward += reward
                 break
-
-            if self.draw_check():
+            elif self.draw_check():
                 reward = 0
                 self.draws += 1
                 break
 
             self.player_current *= -1
 
-        # agent.update_qtable(board_log, board_prev_log, move_log, reward)
-        reward_log = [0] * len(move_log)
-        reward_log[-1] = reward
+        if agent.deep:
+            reward_log = [0] * len(move_log)
+            reward_log[-1] = reward
 
-        return [board_prev_log, move_log, board_log, reward_log]
+            return board_prev_log, move_log, board_log, reward_log
 
-
-# Training and testing -- move to new file
-if __name__ == "__main__":
-
-    p1 = AgentRL(0.01, 0.9, 0.9, model="rl_model5-l2", training=False)
-    # p1x = AgentRL(0.01, 0.9, 0.9, model="rl_model2", training=False)
-    p2 = RandomPlayer()
-    p3 = HumanPlayer()
-    reward_log = []
-    game = Game(p1, p2)
-    n = random.random()
+        else:
+            agent.update_qtable(board_log, board_prev_log, move_log, reward)  # uncomment for q-table
 
 
-
-    iter = 10
-    for i in range(iter):
-        n = random.random()
-        if i % 10 == 0:
-            print("\nGame number: {}".format(i))
-        game.play(p1, p2, agent_first=n, e=0, print_data=False)
-        reward_log.append(game.total_reward)
-
-
-
-    # game.agent_wins = 0
-    # game.random_wins = 0
-    # game.draws = 0
-    # for i in range(3):
-    #     n = random.random()
-    #     if i % 1000 == 10:
-    #         print("\nGame number: {}".format(i))
-    #     game.play(p1, p1x, None, None, None, None,  agent_first=n, e=0.1, print_data=True)
-
-    print("Agent wins: {}".format(game.agent_wins))
-    print("Draws: {}".format(game.draws))
-    print("Random wins: {}".format(game.random_wins))
-    # print(p1.Qtable["[0, 0, 0, 0, 0, 0, 0, 0, 0]"])
-
-
-    # for i in range(5):
-    #     n = random.random()t
-    #     game.play(p1, p3, agent_first=n, e=0, print=True)
